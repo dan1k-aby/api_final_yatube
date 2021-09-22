@@ -32,16 +32,21 @@ class GroupSerializer(serializers.ModelSerializer):
 
 
 class FollowSerializer(serializers.ModelSerializer):
-    user = SlugRelatedField(read_only=True, slug_field='username',
-                            default=serializers.CurrentUserDefault())
-    following = SlugRelatedField(slug_field='username',
-                                 queryset=User.objects.all())
+    user = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='username',
+        default=serializers.CurrentUserDefault()
+    )
+    following = serializers.SlugRelatedField(
+        slug_field='username',
+        queryset=User.objects.all(),
+    )
 
     def validate_following(self, following):
         user = self.context['request'].user
-        follow_object = User.objects.get(username=following)
-        if user == follow_object:
-            return serializers.ValidationError('Нельзя подписаться на себя')
+        to_follow_obj = User.objects.get(username=following)
+        if user == to_follow_obj:
+            raise serializers.ValidationError('Нельзя подпсаться на себя')
         return following
 
     class Meta:
