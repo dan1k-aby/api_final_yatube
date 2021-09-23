@@ -1,19 +1,20 @@
+from rest_framework.generics import get_object_or_404
+from . import permission
+from api.serializers import (CommentSerializer, FollowSerializer,
+                             GroupSerializer, PostSerializer)
+from posts.models import Group, Post
 from rest_framework import mixins, viewsets
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 
-from api.permission import OwnerOrReadOnly
-from api.serializers import (CommentSerializer, FollowSerializer,
-                             GroupSerializer, PostSerializer)
-from posts.models import Group, Post
-
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, OwnerOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly,
+                          permission.OwnerOrReadOnly]
     pagination_class = LimitOffsetPagination
 
     def perform_create(self, serializer):
@@ -22,14 +23,15 @@ class PostViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, OwnerOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly,
+                          permission.OwnerOrReadOnly]
 
     def get_queryset(self):
-        post = Post.objects.get(id=self.kwargs['post_id'])
+        post = get_object_or_404(Post, id=self.kwargs.get('post_id', None))
         return post.comments
 
     def perform_create(self, serializer):
-        post = Post.objects.get(id=self.kwargs['post_id'])
+        post = get_object_or_404(Post, id=self.kwargs.get('post_id', None))
         serializer.save(author=self.request.user, post=post)
 
 
