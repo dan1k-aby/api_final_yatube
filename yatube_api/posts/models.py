@@ -63,4 +63,4 @@ class Follow(models.Model):
                 name='unique follow'
             )
         ]
-        ordering = ('following',)
+        ordering = ('user', 'following')
